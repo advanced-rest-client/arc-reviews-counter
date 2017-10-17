@@ -1,5 +1,6 @@
 {
   "name": "arc-reviews-counter",
+  "version": "0.0.1",
   "description": "Reviews counter for ARC website",
   "main": "arc-reviews-counter.html",
   "dependencies": {
