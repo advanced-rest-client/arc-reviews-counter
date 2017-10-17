@@ -1,0 +1,127 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymerfire/firebase-app.html">
+<link rel="import" href="../polymerfire/firebase-document.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../paper-styles/typography.html">
+<link rel="import" href="../iron-star-rating/iron-star-rating.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="arc-reviews-counter">
+  <template>
+    <style>
+    :host {
+      display: block;
+      @apply --paper-font-body1;
+      line-height: normal;
+    }
+
+    .reviews-summary {
+      @apply --layout-vertical;
+      @apply --layout-center;
+    }
+
+    .average-value {
+      color: #00A2DF;
+      font-size: 120px;
+      font-weight: 500;
+    }
+
+    .divider {
+      margin-left: 24px;
+      margin-right: 12px;
+    }
+
+    .count-value,
+    .divider {
+      color: rgba(0, 0, 0, 0.54);
+      font-size: 20px;
+      margin-bottom: 24px;
+    }
+
+    .container {
+      @apply --layout-horizontal;
+      @apply --layout-end;
+    }
+
+    iron-star-rating {
+      margin-top: 32px;
+      color: #FF8900;
+    }
+    </style>
+    <firebase-app auth-domain="arc-install-website.firebaseapp.com" database-url="https://arc-install-website.firebaseio.com/" api-key="[[apiKey]]"></firebase-app>
+    <firebase-document id="doc" path="/meta" data="{{summary}}"></firebase-document>
+
+    <div class="reviews-summary">
+      <template is="dom-if" if="[[loading]]" restamp>
+        <div class="empty-container">
+          <paper-spinner-lite active></paper-spinner-lite>
+        </div>
+      </template>
+      <template is="dom-if" if="[[!loading]]">
+        <div class="container">
+          <span class="average-value">[[_readAverage(summary.average)]]</span>
+          <span class="divider">/</span>
+          <span class="count-value">[[summary.voters]] reviews</span>
+        </div>
+      </template>
+      <iron-star-rating disable-auto-update value="[[summary.average]]"></iron-star-rating>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `arc-reviews-counter`
+     * Reviews counter for ARC website
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class ArcReviewsCounter extends Polymer.Element {
+      static get is() { return 'arc-reviews-counter'; }
+      static get properties() {
+        return {
+          // Firebase project API key
+          apiKey: {
+            type: String,
+            value: 'AIzaSyBgWD8jGC3Vnxn4qXORSUKxoefzz4ZYrPk'
+          },
+          // Reviews summary
+          summary: Object,
+          // True when data are being loading.
+          loading: {
+            type: Boolean,
+            value: true
+          }
+        };
+      }
+
+      ready() {
+        super.ready();
+        this.$.doc.transactionsComplete.then(() => {
+          this.loading = false;
+          if (!this.summary && !this.summary.average) {
+            this.summary = {
+              average: 0,
+              votes: 0,
+              sum: 0
+            };
+          }
+        });
+      }
+
+      _readAverage(value) {
+        if (!value) {
+          return '0.0';
+        }
+        if (Number.isInteger(value)) {
+          return value + '.0';
+        }
+        return value;
+      }
+    }
+
+    window.customElements.define(ArcReviewsCounter.is, ArcReviewsCounter);
+  </script>
+</dom-module>
